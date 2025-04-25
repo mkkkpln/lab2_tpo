@@ -1,6 +1,8 @@
 package com.example.lab2;
 
 import com.example.lab2.math.MyFunction;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -51,7 +53,10 @@ public class MyFunctionTest {
                 Arguments.of(-2.24305, 0.44532),
                 Arguments.of(-5.37977, 0.40804),
 
-                Arguments.of(-5.37977, 0.40804),
+                // Невидимые точки
+                Arguments.of(-3.76296, -182.62821),
+                Arguments.of(-10.04615, -182.62821),
+                Arguments.of(-22.61252, -182.62821),
 
                 // Граничные случаи
                 Arguments.of(0.0, Double.NaN),  // Нет значения

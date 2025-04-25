@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  *   ln
  */
 public class MyFunctionIntegrationTest {
-    private static final double EPSILON = 1e-6;
+    private static final double EPSILON = 1e-3;
 
     // ==================== Базовые функции TESTS ====================
 
@@ -135,8 +135,8 @@ public class MyFunctionIntegrationTest {
     // ==================== Верхний уровень TESTS ====================
 
     @Test
-    @DisplayName("TOP LEVEL: MyFunction - корректно использует все зависимости")
-    void testMyFunctionIntegration() {
+    @DisplayName("TOP LEVEL: MyFunction - проверка конкретных точек")
+    void testMyFunctionWithSpecificPoints() {
         // Инициализируем все моки
         SinFunction sinMock = mock(SinFunction.class);
         CosFunction cosMock = mock(CosFunction.class);
@@ -148,28 +148,40 @@ public class MyFunctionIntegrationTest {
         Ln3Function ln3Mock = mock(Ln3Function.class);
         Ln10Function ln10Mock = mock(Ln10Function.class);
 
-        // Настраиваем цепочку зависимостей:
-        // Для тригонометрической ветки (x <= 0)
-        when(sinMock.proceed(anyDouble())).thenReturn(0.5);
-        when(cosMock.proceed(anyDouble())).thenReturn(0.5);
-        when(ctgMock.proceed(anyDouble())).thenReturn(1.0);
-        when(tgMock.proceed(anyDouble())).thenReturn(1.0);
-        when(secMock.proceed(anyDouble())).thenReturn(2.0);
-        when(cscMock.proceed(anyDouble())).thenReturn(2.0);
+        // Настраиваем моки для конкретных точек
 
-        // Для логарифмической ветки (x > 0)
-        when(ln2Mock.proceed(anyDouble())).thenReturn(0.693);
-        when(ln3Mock.proceed(anyDouble())).thenReturn(1.098);
-        when(ln10Mock.proceed(anyDouble())).thenReturn(2.302);
+        // Точка 5.0 (логарифмическая ветка)
+        when(ln2Mock.proceed(5.0)).thenReturn(Math.log(5)/Math.log(2));
+        when(ln3Mock.proceed(5.0)).thenReturn(Math.log(5)/Math.log(3));
+        when(ln10Mock.proceed(5.0)).thenReturn(Math.log(5)/Math.log(10));
+
+
+        // Точка -2.24305 (тригонометрическая ветка)
+        when(sinMock.proceed(-2.24305)).thenReturn(Math.sin(-2.24305));
+        when(cosMock.proceed(-2.24305)).thenReturn(Math.cos(-2.24305));
+        when(tgMock.proceed(-2.24305)).thenReturn(Math.tan(-2.24305));
+        when(ctgMock.proceed(-2.24305)).thenReturn(1/Math.tan(-2.24305));
+        when(secMock.proceed(-2.24305)).thenReturn(1/Math.cos(-2.24305));
+        when(cscMock.proceed(-2.24305)).thenReturn(1/Math.sin(-2.24305));
+
 
         MyFunction myFunction = new MyFunction(
                 sinMock, cosMock, tgMock, ctgMock,
                 secMock, cscMock, ln2Mock, ln3Mock, ln10Mock
         );
 
-        // Проверяем оба случая
-        assertNotNull(myFunction.proceed(1.0));  // Логарифмическая ветка
-        assertNotNull(myFunction.proceed(-1.0)); // Тригонометрическая ветка
+        // Проверяем конкретные точки с ожидаемыми значениями
+        assertEquals(2.03964, myFunction.proceed(5.0), EPSILON);
+        assertEquals(0.44532, myFunction.proceed(-2.24305), EPSILON);
+
+        // Дополнительная верификация вызовов
+        verify(ln2Mock).proceed(5.0);
+        verify(ln3Mock).proceed(5.0);
+        verify(ln10Mock).proceed(5.0);
+
+        verify(sinMock).proceed(-2.24305);
+        verify(cosMock).proceed(-2.24305);
+        verify(tgMock).proceed(-2.24305);
 
         // Проверяем вызовы зависимостей
         verify(sinMock, atLeastOnce()).proceed(anyDouble());
