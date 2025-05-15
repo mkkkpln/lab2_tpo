@@ -16,7 +16,6 @@ public class FunctionInterceptorAspect {
     // Добавляем флаг для отслеживания вложенных вызовов
     private static final ThreadLocal<Boolean> isNestedCall = ThreadLocal.withInitial(() -> false);
 
-    private static final double DELTA = 0.1; // Шаг для анализа окрестности точки
 
     @Pointcut(value = "execution(public Double com.example.lab2.math.AFunction+.proceed(Double)) && args(x) && target(function)", argNames = "x,function")
     public void proceedExecution(Double x, AFunction function) {}
