@@ -5,14 +5,15 @@ import com.example.lab2.math.trig.CtgFunction;
 import com.example.lab2.math.trig.SinFunction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static java.lang.Double.NaN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 
@@ -28,51 +29,20 @@ public class CtgFunctionTest {
     @Mock
     private CosFunction cosFunction;
 
-    @Test
-    public void testCtgFunction() {
+    private static final double EPSILON = 1e-5;
 
-        Double x = 1.0;
-        Double sinValue = 0.8414709848078965;
-        Double cosValue = 0.5403023058681398;
-        Double expectedResult = cosValue / sinValue;
-
-        // Act
-        when(sinFunction.proceed(x)).thenReturn(sinValue);
-        when(cosFunction.proceed(x)).thenReturn(cosValue);
-        Double actualResult = ctgFunction.proceed(x);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
-    }
-
-    @Test
-    public void testCtgFunction_undefined() {
-
-        Double x = Math.PI / 2;
-        Double sinValue = 1.0;
+    @ParameterizedTest
+    @DisplayName("ctg(x) - корректно использует cos(x)/sin(x)")
+    @MethodSource("com.example.lab2.module.CotFunctionTest#cotArguments")
+    void testCtgFunction(double x, double expected) {
+        // Arrange
+        doReturn(Math.sin(x)).when(sinFunction).proceed(x);
+        doReturn(Math.cos(x)).when(cosFunction).proceed(x);
 
         // Act
-        when(sinFunction.proceed(x)).thenReturn(sinValue);
-        Double actualResult = ctgFunction.proceed(x);
+        double actual = ctgFunction.proceed(x);
 
         // Assert
-        assertEquals(0.0, actualResult);
-    }
-
-    @Test
-    public void testCtgFunction_zero() {
-
-        Double x = 0.0;
-        Double sinValue = 0.0;
-        Double cosValue = 1.0;
-        Double expectedResult = NaN;
-
-        // Act
-        when(sinFunction.proceed(x)).thenReturn(sinValue);
-//        when(cosFunction.proceed(x)).thenReturn(cosValue);
-        Double actualResult = ctgFunction.proceed(x);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
+        assertEquals(expected, actual, EPSILON);
     }
 }

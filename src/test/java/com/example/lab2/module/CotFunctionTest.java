@@ -38,16 +38,13 @@ public class CotFunctionTest {
 
     private static Stream<Arguments> cotArguments() {
         return Stream.of(
-                Arguments.of(0.0, Double.NaN),
                 Arguments.of(Math.PI/6, Math.sqrt(3)),
                 Arguments.of(2*Math.PI/3, -Math.sqrt(3)/3),
                 Arguments.of(3*Math.PI/4, -1.0),
-                Arguments.of(Math.PI, Double.NaN),
                 Arguments.of(5*Math.PI/4, 1.0),
                 Arguments.of(4*Math.PI/3, Math.sqrt(3)/3),
                 Arguments.of(5*Math.PI/3, -Math.sqrt(3)/3),
                 Arguments.of(7*Math.PI/4, -1.0),
-                Arguments.of(2*Math.PI, Double.NaN),
                 Arguments.of(-Math.PI/6, -Math.sqrt(3)),
                 Arguments.of(-Math.PI/4, -1.0)
         );

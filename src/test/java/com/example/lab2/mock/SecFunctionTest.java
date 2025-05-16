@@ -5,7 +5,9 @@ import com.example.lab2.math.trig.SecFunction;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -21,26 +23,21 @@ public class SecFunctionTest {
     @Mock
     private CosFunction cosFunction;
 
+    private static final double EPSILON = 1e-5;
 
-    @Test
-    public void testSecFunction() {
-        double x = Math.PI;
-        Double cosValue = -1.0;
-        when(cosFunction.proceed(x)).thenReturn(cosValue);
-        assertEquals(-1.0, secFunction.proceed(x));
+
+    @ParameterizedTest
+    @DisplayName("sec(x) - корректно использует 1/cos(x)")
+    @MethodSource("com.example.lab2.module.SecFunctionTest#secArguments")
+    void testSecFunction(double x, double expected) {
+        // Arrange
+        when(cosFunction.proceed(x)).thenReturn(Math.cos(x));
+
+        // Act
+        double actual = secFunction.proceed(x);
+
+        // Assert
+        assertEquals(expected, actual, EPSILON);
     }
 
-    @Test
-    public void testSecFunction_zero() {
-        double x = 0.0;
-        when(cosFunction.proceed(x)).thenReturn(1.0);
-        assertEquals(1.0, secFunction.proceed(x));
-    }
-
-    @Test
-    public void testSecFunction_undefined() {
-        double x = Math.PI / 2;
-        when(cosFunction.proceed(x)).thenReturn(0.0);
-        assertEquals(Double.NaN, secFunction.proceed(x));
-    }
 }

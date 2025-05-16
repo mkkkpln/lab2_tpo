@@ -30,7 +30,7 @@ public class CosFunctionTest {
         assertEquals(expected, cosFunction.proceed(x), EPSILON);
     }
 
-    private static Stream<Arguments> cosArguments() {
+    public static Stream<Arguments> cosArguments() {
         return Stream.of(
                 Arguments.of(0.0, 1.0),
                 Arguments.of(Math.PI/6, Math.sqrt(3)/2),

@@ -3,11 +3,18 @@ package com.example.lab2.mock;
 
 import com.example.lab2.math.trig.CosFunction;
 import com.example.lab2.math.trig.SinFunction;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -21,60 +28,19 @@ public class CosFunctionTest {
     @Mock
     private SinFunction sinFunction;
 
-    @Test
-    public void testCosFunction() {
-        double x = 1.0;
-        Double expectedResult = 0.0;
+    private static final double EPSILON = 1e-5;
+
+    @ParameterizedTest
+    @DisplayName("cos(x) - корректно использует sin(π/2 - x)")
+    @MethodSource("com.example.lab2.module.CosFunctionTest#cosArguments")
+    void testCosFunction(double x, double expected) {
+        // Arrange
+        when(sinFunction.proceed(Math.PI/2 - x)).thenReturn(Math.sin(Math.PI/2 - x));
 
         // Act
-        when(sinFunction.proceed(Math.PI / 2 - x)).thenReturn(expectedResult);
-        Double actualResult = cosFunction.proceed(x);
+        double actual = cosFunction.proceed(x);
 
         // Assert
-        assertEquals(expectedResult, actualResult);
-    }
-
-    // cos(x) = sin(Pi/2 - x)
-
-    @Test
-    public void testCosFunction_pi() {
-
-        double x = Math.PI;
-        Double expectedResult = -1.0;
-
-        // Act
-        when(sinFunction.proceed(Math.PI / 2 - x)).thenReturn(expectedResult);
-        Double actualResult = cosFunction.proceed(x);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
-    }
-
-    @Test
-    public void testCosFunction_zero() {
-
-        double x = 0.0;
-        Double expectedResult = 1.0;
-
-        // Act
-        when(sinFunction.proceed(Math.PI / 2 - x)).thenReturn(expectedResult);
-        Double actualResult = cosFunction.proceed(x);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
-    }
-
-    @Test
-    public void testCosFunction_negative() {
-
-        double x = -1.0;
-        Double expectedResult = 0.0;
-
-        // Act
-        when(sinFunction.proceed(Math.PI / 2 - x)).thenReturn(expectedResult);
-        Double actualResult = cosFunction.proceed(x);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
+        assertEquals(expected, actual, EPSILON);
     }
 }

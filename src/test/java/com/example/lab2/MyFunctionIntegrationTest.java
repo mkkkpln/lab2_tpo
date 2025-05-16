@@ -8,17 +8,19 @@ import com.example.lab2.math.log.Ln3Function;
 import com.example.lab2.math.log.LnFunction;
 import com.example.lab2.math.trig.*;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
@@ -45,103 +47,220 @@ import static org.mockito.Mockito.*;
  *   ln
  */
 public class MyFunctionIntegrationTest {
-    private static final double EPSILON = 5;
+
+    private static final Map<Double, Double> SIN_VALUES = Map.ofEntries(
+            Map.entry(0.0, 0.0),
+            Map.entry(Math.PI/2, 1.0),
+            Map.entry(Math.PI, 0.0),
+            Map.entry(3*Math.PI/2, -1.0),
+            Map.entry(Math.PI/6, 0.5),
+            Map.entry(1.0, 0.8414709848),
+            Map.entry(Math.PI/4, 0.7071067812)
+    );
+
+    private static final Map<Double, Double> LN_VALUES = Map.ofEntries(
+            Map.entry(1.0, 0.0),
+            Map.entry(Math.E, 1.0),
+            Map.entry(2.0, 0.69314718056),
+            Map.entry(0.5, -0.69314718056),
+            Map.entry(10.0, 2.30258509299),
+            Map.entry(3.0, 1.09861228867),
+            Map.entry(9.0, 2.1972245773),
+            Map.entry(27.0, 3.2958368660),
+            Map.entry(100.0, 4.6051701860),
+            Map.entry(1000.0, 6.9077552790)
+    );
+
+    private static final Map<Double, Double> COS_VALUES = Map.ofEntries(
+            Map.entry(0.0, 1.0),
+            Map.entry(Math.PI/2, 0.0),
+            Map.entry(Math.PI, -1.0),
+            Map.entry(3*Math.PI/2, 0.0),
+            Map.entry(Math.PI/3, 0.5),
+            Map.entry(1.0, 0.54030230586),
+            Map.entry(Math.PI/4, 0.7071067812),
+            Map.entry(Math.PI/6, 0.8660254037)
+    );
 
     // ==================== Базовые функции TESTS ====================
 
-    @Test
+    @ParameterizedTest
     @DisplayName("BASE: sin(x) - вычисляет корректные значения")
-    void testSinFunction() {
+    @MethodSource("provideSinTestData")
+    void testSinFunction(double x, double expected) {
         SinFunction sin = new SinFunction();
-        assertEquals(0.0, sin.proceed(0.0), EPSILON);
-        assertEquals(1.0, sin.proceed(Math.PI/2), EPSILON);
+        assertEquals(expected, sin.proceed(x), EPSILON);
     }
 
-    @Test
+    private static Stream<Arguments> provideSinTestData() {
+        return SIN_VALUES.entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
+    }
+
+    @ParameterizedTest
     @DisplayName("BASE: ln(x) - вычисляет корректные значения")
-    void testLnFunction() {
+    @MethodSource("provideLnTestData")
+    void testLnFunction(double x, double expected) {
         LnFunction ln = new LnFunction();
-        assertEquals(0.0, ln.proceed(1.0), EPSILON);
-        assertEquals(1.0, ln.proceed(Math.E), EPSILON);
+        assertEquals(expected, ln.proceed(x), EPSILON);
+    }
+
+    private static Stream<Arguments> provideLnTestData() {
+        return LN_VALUES.entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
     }
 
     // ==================== Уровень 1 TESTS ====================
 
-    @Test
+    @ParameterizedTest
     @DisplayName("LEVEL 1: cos(x) - корректно использует sin")
-    void testCosFunction() {
+    @MethodSource("provideCosTestData")
+    void testCosFunction(double x, double expected) {
         SinFunction sinMock = mock(SinFunction.class);
-        when(sinMock.proceed(Math.PI/2 - 1.0)).thenReturn(0.5403);
+        when(sinMock.proceed(Math.PI/2 - x)).thenReturn(COS_VALUES.get(x));
 
         CosFunction cos = new CosFunction(sinMock);
-        assertEquals(0.5403, cos.proceed(1.0), EPSILON);
+        assertEquals(expected, cos.proceed(x), 1e-4);
     }
 
-    @Test
+    private static Stream<Arguments> provideCosTestData() {
+        return COS_VALUES.entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
+    }
+
+    @ParameterizedTest
     @DisplayName("LEVEL 1: csc(x) - корректно использует sin")
-    void testCscFunction() {
+    @MethodSource("provideCscTestData")
+    void testCscFunction(double x, double expected) {
         SinFunction sinMock = mock(SinFunction.class);
-        when(sinMock.proceed(1.0)).thenReturn(0.8415);
+        when(sinMock.proceed(x)).thenReturn(SIN_VALUES.get(x));
 
         CscFunction csc = new CscFunction(sinMock);
-        assertEquals(1.0/0.8415, csc.proceed(1.0), 1e-4);
+        assertEquals(expected, csc.proceed(x), 1e-4);
     }
 
-    @Test
+    private static Stream<Arguments> provideCscTestData() {
+        return Map.of(
+                        Math.PI/2, 1.0,
+                        Math.PI/6, 2.0,
+                        1.0, 1.0/SIN_VALUES.get(1.0)
+                ).entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
+    }
+
+
+
+    @ParameterizedTest
     @DisplayName("LEVEL 1: ln3(x) - корректно использует ln")
-    void testLn3Function() {
+    @MethodSource("provideLn3TestData")
+    void testLn3Function(double x, double expected) {
         LnFunction lnMock = mock(LnFunction.class);
-        when(lnMock.proceed(3.0)).thenReturn(1.0986);
+        when(lnMock.proceed(x)).thenReturn(LN_VALUES.get(x));
+        when(lnMock.proceed(3.0)).thenReturn(LN_VALUES.get(3.0));
 
         Ln3Function ln3 = new Ln3Function(lnMock);
-        assertEquals(1.0, ln3.proceed(3.0), 1e-4);
+        assertEquals(expected, ln3.proceed(x), 1e-4);
     }
 
-    @Test
+    private static Stream<Arguments> provideLn3TestData() {
+        return Map.of(
+                        3.0, 1.0,
+                        9.0, 2.0,
+                        1.0, 0.0,
+                        27.0, 3.0
+                ).entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
+    }
+
+    @ParameterizedTest
     @DisplayName("LEVEL 1: ln10(x) - корректно использует ln")
-    void testLn10Function() {
+    @MethodSource("provideLn10TestData")
+    void testLn10Function(double x, double expected) {
         LnFunction lnMock = mock(LnFunction.class);
-        when(lnMock.proceed(10.0)).thenReturn(2.3026);
+        when(lnMock.proceed(x)).thenReturn(LN_VALUES.get(x));
+        when(lnMock.proceed(10.0)).thenReturn(LN_VALUES.get(10.0));
 
         Ln10Function ln10 = new Ln10Function(lnMock);
-        assertEquals(1.0, ln10.proceed(10.0), 1e-4);
+        assertEquals(expected, ln10.proceed(x), 1e-4);
+    }
+
+    private static Stream<Arguments> provideLn10TestData() {
+        return Map.ofEntries(
+                        Map.entry(10.0, 1.0),
+                        Map.entry(100.0, 2.0),
+                        Map.entry(1.0, 0.0),
+                        Map.entry(1000.0, 3.0)
+                ).entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
     }
 
     // ==================== Уровень 2 TESTS ====================
 
-    @Test
+    @ParameterizedTest
     @DisplayName("LEVEL 2: ctg(x) - корректно использует sin и cos")
-    void testCtgFunction() {
+    @MethodSource("provideCtgTestData")
+    void testCtgFunction(double x, double expected) {
         SinFunction sinMock = mock(SinFunction.class);
         CosFunction cosMock = mock(CosFunction.class);
-        when(sinMock.proceed(1.0)).thenReturn(0.8415);
-        when(cosMock.proceed(1.0)).thenReturn(0.5403);
+
+        when(sinMock.proceed(x)).thenReturn(SIN_VALUES.get(x));
+        when(cosMock.proceed(x)).thenReturn(COS_VALUES.get(x));
 
         CtgFunction ctg = new CtgFunction(sinMock, cosMock);
-        assertEquals(0.5403/0.8415, ctg.proceed(1.0), 1e-4);
+        assertEquals(expected, ctg.proceed(x), 1e-4);
     }
 
-    @Test
+    private static Stream<Arguments> provideCtgTestData() {
+        return Map.ofEntries(
+                        Map.entry(Math.PI/4, 1.0),
+                        Map.entry(Math.PI/6, Math.sqrt(3)),
+                        Map.entry(1.0, COS_VALUES.get(1.0)/SIN_VALUES.get(1.0))
+                ).entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
+    }
+
+    @ParameterizedTest
     @DisplayName("LEVEL 2: sec(x) - корректно использует cos")
-    void testSecFunction() {
+    @MethodSource("provideSecTestData")
+    void testSecFunction(double x, double expected) {
         CosFunction cosMock = mock(CosFunction.class);
-        when(cosMock.proceed(1.0)).thenReturn(0.5403);
+        when(cosMock.proceed(x)).thenReturn(COS_VALUES.get(x));
 
         SecFunction sec = new SecFunction(cosMock);
-        assertEquals(1.0/0.5403, sec.proceed(1.0), 1e-4);
+        assertEquals(expected, sec.proceed(x), 1e-4);
+    }
+
+    private static Stream<Arguments> provideSecTestData() {
+        return Map.ofEntries(
+                        Map.entry(0.0, 1.0),
+                        Map.entry(Math.PI, -1.0),
+                        Map.entry(1.0, 1.0/COS_VALUES.get(1.0))
+                ).entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
     }
 
 
     // ==================== Уровень 3 TESTS ====================
 
-    @Test
+
+    @ParameterizedTest
     @DisplayName("LEVEL 3: tg(x) - корректно использует ctg")
-    void testTgFunction() {
+    @MethodSource("provideTgTestData")
+    void testTgFunction(double x, double expected) {
         CtgFunction ctgMock = mock(CtgFunction.class);
-        when(ctgMock.proceed(1.0)).thenReturn(1.5574);
+        when(ctgMock.proceed(x)).thenReturn(1.0/Math.tan(x));
 
         TgFunction tg = new TgFunction(ctgMock);
-        assertEquals(1.0/1.5574, tg.proceed(1.0), 1e-4);
+        assertEquals(expected, tg.proceed(x), 1e-4);
+    }
+
+    private static Stream<Arguments> provideTgTestData() {
+        return Map.ofEntries(
+                        Map.entry(Math.PI/4, 1.0),
+                        Map.entry(Math.PI/6, 1.0/Math.sqrt(3)),
+                        Map.entry(1.0, Math.tan(1.0))
+                ).entrySet().stream()
+                .map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
     }
 
 
@@ -269,4 +388,6 @@ public class MyFunctionIntegrationTest {
         }
         throw new IllegalArgumentException("No test data found for x=" + x);
     }
+
+    private static final double EPSILON = 5;
 }
